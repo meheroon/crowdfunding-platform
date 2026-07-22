@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const connectDB = require("./config/db");
@@ -13,24 +12,27 @@ const PORT = process.env.PORT || 5000;
 // Connect to MongoDB and seed admin
 connectDB().then(() => seedAdmin());
 
-// Middleware
+// CORS - manual implementation for Render compatibility
 const allowedOrigins = [
   process.env.CLIENT_URL,
   "http://localhost:3000",
 ].filter(Boolean);
 
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.some((o) => origin.replace(/\/$/, "") === o.replace(/\/$/, ""))) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  })
-);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.some((o) => origin.replace(/\/$/, "") === o.replace(/\/$/, ""))) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Max-Age", "86400");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+  next();
+});
 app.use(express.json());
 app.use(cookieParser());
 
