@@ -1,16 +1,13 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
-const connectDB = require("./config/db");
+const mongoose = require("mongoose");
 const seedAdmin = require("./seed");
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
-
-// Connect to MongoDB and seed admin
-connectDB().then(() => seedAdmin());
 
 // CORS - manual implementation for Render compatibility
 const allowedOrigins = [
@@ -33,6 +30,7 @@ app.use((req, res, next) => {
   }
   next();
 });
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -61,6 +59,16 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Connect to MongoDB then start server
+mongoose.connect(process.env.MONGODB_URI)
+  .then(async () => {
+    console.log("MongoDB connected successfully");
+    await seedAdmin();
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error("MongoDB connection error:", error.message);
+    process.exit(1);
+  });
