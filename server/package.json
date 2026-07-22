@@ -4,8 +4,9 @@
   "description": "Crowdfunding Platform Backend API",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "node seed.js && node index.js",
+    "dev": "nodemon index.js",
+    "seed": "node seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
