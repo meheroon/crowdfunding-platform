@@ -4,13 +4,11 @@ const User = require("./models/User");
 
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI);
-
     const existingAdmin = await User.findOne({ user_email: "admin@fundspark.com" });
 
     if (existingAdmin) {
       console.log("Admin user already exists.");
-      process.exit(0);
+      return;
     }
 
     const hashedPassword = await bcrypt.hash("Admin@123", 12);
@@ -27,11 +25,9 @@ const seedAdmin = async () => {
     console.log("Admin user created successfully!");
     console.log("Email: admin@fundspark.com");
     console.log("Password: Admin@123");
-    process.exit(0);
   } catch (error) {
     console.error("Failed to seed admin:", error.message);
-    process.exit(1);
   }
 };
 
-seedAdmin();
+module.exports = seedAdmin;
