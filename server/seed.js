@@ -4,6 +4,16 @@ const User = require("./models/User");
 
 const seedAdmin = async () => {
   try {
+    // Drop stale indexes that conflict with current schema
+    const collection = mongoose.connection.collection("users");
+    const indexes = await collection.indexes();
+    for (const index of indexes) {
+      if (index.name === "email_1") {
+        await collection.dropIndex("email_1");
+        console.log("Dropped stale index: email_1");
+      }
+    }
+
     const existingAdmin = await User.findOne({ user_email: "admin@fundspark.com" });
 
     if (existingAdmin) {
