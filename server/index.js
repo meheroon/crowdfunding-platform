@@ -2,7 +2,7 @@ const express = require("express");
 const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
 const mongoose = require("mongoose");
-const seedAdmin = require("./seed");
+const seedData = require("./seed");
 
 dotenv.config();
 
@@ -63,7 +63,7 @@ app.use((req, res) => {
 mongoose.connect(process.env.MONGODB_URI)
   .then(async () => {
     console.log("MongoDB connected successfully");
-    await seedAdmin();
+    await seedData();
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`Server running on port ${PORT}`);
     });
