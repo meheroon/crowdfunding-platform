@@ -2,13 +2,16 @@
 
 import { useState } from "react";
 import DashboardLayout from "@/components/DashboardLayout";
+import { uploadToImgBB } from "@/utils/upload";
 import toast from "react-hot-toast";
 import axiosSecure from "@/utils/axios";
 import { useRouter } from "next/navigation";
+import { FiUpload, FiImage } from "react-icons/fi";
 
 const AddCampaign = () => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     campaign_title: "",
     campaign_story: "",
@@ -22,6 +25,27 @@ const AddCampaign = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const url = await uploadToImgBB(file);
+      setFormData({ ...formData, campaign_image_url: url });
+      toast.success("Image uploaded!");
+    } catch (error) {
+      toast.error(error.message || "Upload failed — you can paste a URL instead");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -173,17 +197,45 @@ const AddCampaign = () => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Campaign Image URL
+              Campaign Image
             </label>
-            <input
-              type="url"
-              name="campaign_image_url"
-              value={formData.campaign_image_url}
-              onChange={handleChange}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
-              placeholder="https://example.com/image.jpg"
-              required
-            />
+            <div className="space-y-2">
+              <label className="flex items-center justify-center w-full px-4 py-4 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-primary-400 transition-colors">
+                <FiUpload className="w-5 h-5 text-gray-400 mr-2" />
+                <span className="text-sm text-gray-500">
+                  {uploading ? "Uploading..." : "Upload cover image from device"}
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={uploading}
+                />
+              </label>
+              {formData.campaign_image_url && (
+                <div className="flex items-center gap-3">
+                  <img
+                    src={formData.campaign_image_url}
+                    alt="Preview"
+                    className="w-16 h-16 rounded-lg object-cover"
+                  />
+                  <span className="text-xs text-green-600">Image uploaded</span>
+                </div>
+              )}
+              <div className="relative">
+                <FiImage className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                <input
+                  type="url"
+                  name="campaign_image_url"
+                  value={formData.campaign_image_url}
+                  onChange={handleChange}
+                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  placeholder="Or paste image URL"
+                  required
+                />
+              </div>
+            </div>
           </div>
 
           <button

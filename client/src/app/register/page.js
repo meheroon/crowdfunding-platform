@@ -4,8 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthProvider";
+import { uploadToImgBB } from "@/utils/upload";
 import toast from "react-hot-toast";
-import { FiUser, FiMail, FiLock, FiImage, FiEye, FiEyeOff } from "react-icons/fi";
+import { FiUser, FiMail, FiLock, FiImage, FiEye, FiEyeOff, FiUpload } from "react-icons/fi";
 import { FaGoogle } from "react-icons/fa";
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -33,8 +34,30 @@ const Register = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const { register, googleLogin } = useAuth();
   const router = useRouter();
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be under 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const url = await uploadToImgBB(file);
+      setFormData({ ...formData, photo_url: url });
+      toast.success("Image uploaded!");
+    } catch (error) {
+      toast.error(error.message || "Upload failed — you can paste a URL instead");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -137,18 +160,43 @@ const Register = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Profile Picture URL
+                Profile Picture
               </label>
-              <div className="relative">
-                <FiImage className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="url"
-                  name="photo_url"
-                  value={formData.photo_url}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
-                  placeholder="https://example.com/photo.jpg"
-                />
+              <div className="space-y-2">
+                <label className="flex items-center justify-center w-full px-4 py-3 border-2 border-dashed border-gray-200 rounded-lg cursor-pointer hover:border-primary-400 transition-colors">
+                  <FiUpload className="w-5 h-5 text-gray-400 mr-2" />
+                  <span className="text-sm text-gray-500">
+                    {uploading ? "Uploading..." : "Upload from device"}
+                  </span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+                {formData.photo_url && (
+                  <div className="flex items-center gap-2">
+                    <img
+                      src={formData.photo_url}
+                      alt="Preview"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <span className="text-xs text-green-600">Uploaded</span>
+                  </div>
+                )}
+                <div className="relative">
+                  <FiImage className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="url"
+                    name="photo_url"
+                    value={formData.photo_url}
+                    onChange={handleChange}
+                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition-all"
+                    placeholder="Or paste image URL"
+                  />
+                </div>
               </div>
             </div>
 
