@@ -102,13 +102,26 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-// Get campaigns by creator
+// Get campaigns by creator (MUST be before /:id to avoid being caught by it)
 router.get("/creator/my-campaigns", verifyToken, verifyRole("creator"), async (req, res) => {
   try {
     const campaigns = await Campaign.find({ creator_email: req.user.email }).sort({
       deadline: -1,
     });
     res.json(campaigns);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+// Get single campaign
+router.get("/:id", async (req, res) => {
+  try {
+    const campaign = await Campaign.findById(req.params.id);
+    if (!campaign) {
+      return res.status(404).json({ message: "Campaign not found" });
+    }
+    res.json(campaign);
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

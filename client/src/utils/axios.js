@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const rawBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const rawBase = (process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000").replace(/\/+$/, "");
 const baseURL = rawBase.endsWith("/api") ? rawBase : `${rawBase}/api`;
 
 const axiosSecure = axios.create({
