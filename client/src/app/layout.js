@@ -6,7 +6,10 @@ import AuthProvider from "@/components/AuthProvider";
 export const metadata = {
   title: "FundSpark - Crowdfunding Platform",
   description:
-    "Empower creators, fund innovation. Join FundSpark to bring ideas to life through community-powered crowdfunding.",
+    "Empower creators, fund innovation. Join FundSpark to bring ideas to life through community-powered crowdfunding",
+  icons: {
+    icon: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({ children }) {
